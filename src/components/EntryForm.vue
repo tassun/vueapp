@@ -143,15 +143,11 @@ import { ref, computed, watch } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { required, helpers, between } from '@vuelidate/validators';
 import $ from "jquery";
-import { DEFAULT_CONTENT_TYPE, getApiUrl }  from '@/assets/js/app.info.js';
-import { startWaiting, stopWaiting, submitFailure, detectErrorResponse }  from '@/assets/js/app.util.js';
-import { confirmUpdate, confirmSave, confirmDelete, successbox, serializeParameters } from '@/assets/js/app.util.js';
-import { replaceString } from "@/assets/js/msg.util.js";
-import InputDate from '@/controls/InputDate.vue';
-import InputTime from '@/controls/InputTime.vue';
-import InputNumber from '@/controls/InputNumber.vue';
-import InputMoney from '@/controls/InputMoney.vue';
-import InputMask from '@/controls/InputMask.vue';
+import { DEFAULT_CONTENT_TYPE, getApiUrl }  from '@willsofts/will-app';
+import { startWaiting, stopWaiting, submitFailure, detectErrorResponse }  from '@willsofts/will-app';
+import { confirmUpdate, confirmSave, confirmDelete, successbox, serializeParameters } from '@willsofts/will-app';
+import { replaceString } from "@willsofts/will-app";
+import { InputDate, InputTime, InputNumber, InputMoney, InputMask } from '@willsofts/will-control';
 import DialogForm from './DialogForm.vue';
 
 const defaultData = {

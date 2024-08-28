@@ -32,10 +32,13 @@
 <script>
 import { ref } from 'vue';
 import $ from "jquery";
-import { DEFAULT_CONTENT_TYPE, getApiUrl }  from '@willsofts/will-app';
-import { startWaiting, stopWaiting, submitFailure, serializeParameters }  from '@willsofts/will-app'
-import { Paging } from "@willsofts/will-app";
-import { InputDate, InputMask, DataTable, DataPaging } from '@willsofts/will-control';
+import { DEFAULT_CONTENT_TYPE, getApiUrl }  from '@/assets/js/app.info.js';
+import { startWaiting, stopWaiting, submitFailure, serializeParameters }  from '@/assets/js/app.util.js'
+import { Paging } from "@/assets/js/Paging.js";
+import InputDate from '@/controls/InputDate.vue';
+import InputMask from '@/controls/InputMask.vue';
+import DataTable from '@/controls/DataTable.vue';
+import DataPaging from '@/controls/DataPaging.vue';
 import Select2 from 'vue3-select2-component';
 
 const defaultData = {

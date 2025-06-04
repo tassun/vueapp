@@ -261,7 +261,7 @@ table.recordset-table-class tr td { height: 40px; }
 	 font-weight: normal; 
 	 color: #FFFFFF;
 }
-.entry-dialog-layer { margin-left: 15px; margin-right: 5px;}
+.entry-dialog-layer { margin-left: 15px; margin-right: 5px; margin-top: 5px; }
 
 .ui-widget-overlay {
   opacity: 0.0;
@@ -380,3 +380,9 @@ a:hover { text-decoration: none; }
 .img-lang { width: 30px; height: 15px; }
 .img-lang-EN { content: url(../img/lang/EN.png); }
 .img-lang-TH { content: url(../img/lang/TH.png); }
+.img-lang-VN { content: url(../img/lang/VN.png); }
+.img-lang-CN { content: url(../img/lang/CN.png); }
+.img-lang-KM { content: url(../img/lang/KM.png); }
+.img-lang-LA { content: url(../img/lang/LA.png); }
+.img-lang-JP { content: url(../img/lang/JP.png); }
+div.date-control { padding-right: 0px; display: flex; }

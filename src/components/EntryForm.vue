@@ -18,14 +18,14 @@
         <div class="row row-height">
           <div class="col-height col-md-4">
             <label for="amount">{{ labels.amount_label }}</label>
-            <div class="input-group" :class="{'has-error': v$.amount.$error}">
+            <div class="input-group has-validation" :class="{'has-error': v$.amount.$error}">
               <InputMoney ref="amount" v-model="localData.amount" id="amount" name="amount" decimal="2" /> 
             </div>
             <span v-if="v$.amount.$error" class="has-error">{{ v$.amount.$errors[0].$message }}</span>
           </div>
           <div class="col-height col-md-3">
             <label for="pincode">{{ labels.pincode_label }}</label>
-            <div class="input-group" :class="{'has-error': v$.pincode.$error}">
+            <div class="input-group has-validation" :class="{'has-error': v$.pincode.$error}">
               <InputMask ref="pincode" v-model="localData.pincode" id="pincode" name="pincode" picture="XXXXXXXX" /> 
             </div>
             <span v-if="v$.pincode.$error" class="has-error">{{ v$.pincode.$errors[0].$message }}</span>
@@ -40,15 +40,19 @@
         <div class="row row-height">
           <div class="col-height col-md-4">
             <label for="effectdate">{{ labels.effectdate_label }}</label>
-            <div class="input-group" :class="{'has-error': v$.effectdate.$error}">
+            <div class="input-group has-validation" :class="{'has-error': v$.effectdate.$error}">
+              <div class="date-control">
               <InputDate ref="effectdate" v-model="localData.effectdate" id="effectdate" name="effectdate" /> 
+              <label class="required">*</label>
+              </div>
             </div>
             <span v-if="v$.effectdate.$error" class="has-error">{{ v$.effectdate.$errors[0].$message }}</span>
           </div>
           <div class="col-height col-md-3">
             <label for="edittime">{{labels.effecttime_label}}</label>
-            <div class="input-group" :class="{'has-error': v$.effecttime.$error}">
+            <div class="input-group has-validation" :class="{'has-error': v$.effecttime.$error}">
               <InputTime ref="effecttime" v-model="localData.effecttime" id="effecttime" name="effecttime" /> 
+              <label class="required">*</label>
             </div>
             <span v-if="v$.effecttime.$error" class="has-error">{{ v$.effecttime.$errors[0].$message }}</span>
           </div>
@@ -58,7 +62,7 @@
             <label for="age">{{ labels.age_label }}</label>
           </div>
           <div class="col-height col-md-2">
-            <div class="input-group" :class="{'has-error': v$.age.$error}">
+            <div class="input-group has-validation" :class="{'has-error': v$.age.$error}">
               <InputNumber ref="age" v-model="localData.age" id="age" name="age" /> 
             </div>
             <span v-if="v$.age.$error" class="has-error">{{ v$.age.$errors[0].$message }}</span>
@@ -132,8 +136,8 @@
         </div>
     </template>
     <template v-slot:footer>
-      <button class="btn btn-dark btn-sm" @click="saveClick" v-if="insertMode"><em class="fa fa-save fa-btn-icon"></em>{{ labels.save_button }}</button>
-      <button class="btn btn-dark btn-sm" @click="updateClick" v-if="updateMode"><em class="fa fa-save fa-btn-icon"></em>{{ labels.update_button }}</button>
+      <button ref="savebutton" id="savebutton" class="btn btn-dark btn-sm" @click="saveClick" v-if="insertMode"><em class="fa fa-save fa-btn-icon"></em>{{ labels.save_button }}</button>
+      <button ref="updatebutton" id="updatebutton" class="btn btn-dark btn-sm" @click="updateClick" v-if="updateMode"><em class="fa fa-save fa-btn-icon"></em>{{ labels.update_button }}</button>
       <button class="btn btn-dark btn-sm" data-dismiss="modal"><em class="fa fa-close fa-btn-icon"></em>{{ labels.cancel_button }}</button>
     </template>
   </DialogForm>
@@ -143,13 +147,14 @@ import { ref, computed, watch } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { required, helpers, between } from '@vuelidate/validators';
 import $ from "jquery";
-import { DEFAULT_CONTENT_TYPE, getApiUrl }  from '@willsofts/will-app';
+import { DEFAULT_CONTENT_TYPE, getApiUrl, disableControls }  from '@willsofts/will-app';
 import { startWaiting, stopWaiting, submitFailure, detectErrorResponse }  from '@willsofts/will-app';
 import { confirmUpdate, confirmSave, confirmDelete, successbox, serializeParameters } from '@willsofts/will-app';
 import { replaceString } from "@willsofts/will-app";
 import { InputDate, InputTime, InputNumber, InputMoney, InputMask } from '@willsofts/will-control';
 import DialogForm from './DialogForm.vue';
 
+const APP_URL = "/api/demo002";
 const defaultData = {
   account: '',
   amount: 0.00,
@@ -237,12 +242,14 @@ export default {
     },
     async saveClick() {
       console.log("click: save");
+      disableControls($("#savebutton"));
       let valid = await this.validateForm();
       if(!valid) return;
       this.startSaveRecord();
     },
     async updateClick() {
       console.log("click: update");
+      disableControls($("#updatebutton"));
       let valid = await this.validateForm();
       if(!valid) return;
       this.startUpdateRecord();
@@ -267,8 +274,9 @@ export default {
         else $("#"+input).trigger("focus"); //if using id
       }
     },
-    showDialog() {
+    showDialog(callback) {
       //$("#modaldialog_layer").modal("show");
+      if(callback) $(this.$refs.dialogForm.$el).on("shown.bs.modal",callback);
       $(this.$refs.dialogForm.$el).modal("show");
     },  
     hideDialog() {
@@ -285,7 +293,7 @@ export default {
     },
     startInsertRecord() {
       this.resetRecord();
-      this.showDialog();
+      this.showDialog(() => { this.$refs.account.focus(); });
     },
     startSaveRecord() {
       confirmSave(() => {
@@ -304,11 +312,10 @@ export default {
     },
     saveRecord(dataRecord) {
         let jsondata = {ajax: true};
-        //Object.assign(jsondata,dataRecord);
         let formdata = serializeParameters(jsondata,dataRecord);
         startWaiting();
         $.ajax({
-          url: getApiUrl()+"/api/demo002/insert",
+          url: getApiUrl()+APP_URL+"/insert",
           data: formdata.jsondata,
           headers : formdata.headers,
           type: "POST",
@@ -325,19 +332,18 @@ export default {
             successbox(() => {
               //reset data for new record insert
               this.resetRecord();
-              this.$refs.account.focus();
+              setTimeout(() => { this.$refs.account.focus(); },100);
+              this.$emit('data-saved',dataRecord,data);
             });
-            this.$emit('data-saved',dataRecord,data);
           }
       });
     },
     updateRecord(dataRecord) {
         let jsondata = {ajax: true};
-        //Object.assign(jsondata,dataRecord);
         let formdata = serializeParameters(jsondata,dataRecord);
         startWaiting();
         $.ajax({
-          url: getApiUrl()+"/api/demo002/update",
+          url: getApiUrl()+APP_URL+"/update",
           data: formdata.jsondata,
           headers : formdata.headers,
           type: "POST",
@@ -353,18 +359,17 @@ export default {
             if(detectErrorResponse(data)) return;
             successbox(() => {
               this.hideDialog();
+              this.$emit('data-updated',dataRecord,data);
             });
-            this.$emit('data-updated',dataRecord,data);
           }
       });
     },
     retrieveRecord(dataKeys) {
       let jsondata = {ajax: true};
-      //Object.assign(jsondata,dataKeys);
       let formdata = serializeParameters(jsondata,dataKeys);
       startWaiting();
       $.ajax({
-        url: getApiUrl()+"/api/demo002/retrieve",
+        url: getApiUrl()+APP_URL+"/retrieve",
         data: formdata.jsondata,
         headers : formdata.headers,
         type: "POST",
@@ -381,18 +386,17 @@ export default {
             this.reset(data.body.dataset,{action:"edit"});
             this.v$.$reset();
             this.disabledKeyField = true;
-            this.showDialog();
+            this.showDialog(() => { this.$refs.amount.focus(); });
           }
         }
       });	
     },
     deleteRecord(dataKeys) {
       let jsondata = {ajax: true};
-      //Object.assign(jsondata,dataKeys);
       let formdata = serializeParameters(jsondata,dataKeys);
       startWaiting();
       $.ajax({
-        url: getApiUrl()+"/api/demo002/remove",
+        url: getApiUrl()+APP_URL+"/remove",
         data: formdata.jsondata,
         headers : formdata.headers,
         type: "POST",
@@ -406,8 +410,9 @@ export default {
           stopWaiting();
           console.log("deleteRecord: success",data);
           if(detectErrorResponse(data)) return;
-          successbox();
-          this.$emit('data-deleted',dataKeys,data);
+          successbox(() => {
+            this.$emit('data-deleted',dataKeys,data);
+          });
         }
       });	
     },

@@ -2,7 +2,7 @@
 <template>
   <div id="fswaitlayer" class="fa fa-spinner fa-spin"></div>
   <div class="pt-page pt-page-current pt-page-controller search-pager">
-    <PageHeader ref="pageHeader" :labels="labels" pid="demo002" version="1.0.0" showLanguage="true" @language-changed="changeLanguage" />
+    <PageHeader ref="pageHeader" :labels="labels" pid="demo003" version="1.0.0" showLanguage="true" @language-changed="changeLanguage" :multiLanguages="multiLanguages" :build="buildVersion" />
     <SearchForm ref="searchForm" :labels="labels" :dataCategory="dataCategory" @data-select="dataSelected" @data-insert="dataInsert" />
   </div>
   <teleport to="#modaldialog">
@@ -15,10 +15,11 @@ import $ from "jquery";
 import { PageHeader } from '@willsofts/will-control';
 import SearchForm from '@/components/SearchForm.vue';
 import EntryForm from '@/components/EntryForm.vue';
-import { getLabelModel } from "@willsofts/will-app";
+import { getLabelModel, getMultiLanguagesModel, getPermitModel, Permission } from "@willsofts/will-app";
 import { DEFAULT_CONTENT_TYPE, getDefaultLanguage, setDefaultLanguage, getApiUrl } from "@willsofts/will-app";
 import { startApplication, serializeParameters } from "@willsofts/will-app";
 
+const buildVersion = process.env.VUE_APP_BUILD_DATETIME;
 export default {
   components: {
     PageHeader, SearchForm, EntryForm
@@ -32,13 +33,16 @@ export default {
     };
     let labels = ref(getLabelModel());
     let alreadyLoading = ref(false);
-    return { labels, dataCategory, dataChunk, alreadyLoading };
+    const multiLanguages = ref(getMultiLanguagesModel());
+    const permits = ref(new Permission());
+    return { buildVersion, multiLanguages, labels, dataCategory, dataChunk, alreadyLoading, permits };
   },
   mounted() {
     console.log("App: mounted ...");
-    this.$nextTick(() => {
+    this.$nextTick(async () => {
       //ensure ui completed then invoke startApplication 
-      startApplication("demo002",(data) => {
+      startApplication("demo003",(data) => {
+        this.multiLanguages = getMultiLanguagesModel();
         this.messagingHandler(data);
         this.loadDataCategories(!this.alreadyLoading,() => {
           this.$refs.pageHeader.changeLanguage(getDefaultLanguage());
@@ -47,6 +51,8 @@ export default {
       //try to find out parameters from url
       const searchParams = new URLSearchParams(window.location.href);
       console.log("param: authtoken=",searchParams.get("authtoken"),", language=",searchParams.get("language"));      
+      this.permits = await getPermitModel("demo003");
+      console.log("permits:",this.permits,"can insert=",this.permits.canDo('insert'));
     });
   },
   methods: {
@@ -97,11 +103,11 @@ export default {
       let languages;
       let kt_marrystatus = this.dataChunk["kt_marrystatus"];
       if(kt_marrystatus) {
-        marrystatus = kt_marrystatus.map((item) => { return { id: item.statusid, text: "EN"==lang?item.nameen:item.nameth } });
+        marrystatus = kt_marrystatus.map((item) => { return { id: item.statusid, text: "TH"==lang?item.nameth:item.nameen } });
       }
       let kt_languages = this.dataChunk["kt_languages"];
       if(kt_languages) {
-        languages = kt_languages.map((item) => { return { id: item.langid, text: "EN"==lang?item.nameen:item.nameth } });
+        languages = kt_languages.map((item) => { return { id: item.langid, text: "TH"==lang?item.nameth:item.nameen } });
       }
       if(marrystatus) this.dataCategory.marrystatus = marrystatus;
       if(languages) this.dataCategory.languages = languages;

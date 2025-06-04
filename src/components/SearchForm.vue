@@ -20,6 +20,7 @@
         <div class="col-height col-md">
             <br/>
             <button @click="searchClick" class="btn btn-dark btn-sm btn-ctrl"><i class="fa fa-search fa-btn-icon" aria-hidden="true"></i>{{ labels.search_button }}</button>
+            <button @click="resetClick" class="btn btn-dark btn-sm btn-ctrl"><i class="fa fa-refresh fa-btn-icon" aria-hidden="true"></i>{{ labels.reset_button }}</button>
             <button @click="insertClick" class="btn btn-dark btn-sm btn-ctrl pull-right"><i class="fa fa-plus fa-btn-icon" aria-hidden="true"></i>{{ labels.insert_button }}</button>
         </div>
     </div>
@@ -37,7 +38,9 @@ import { startWaiting, stopWaiting, submitFailure, serializeParameters }  from '
 import { Paging } from "@willsofts/will-app";
 import { InputDate, InputMask, DataTable, DataPaging } from '@willsofts/will-control';
 import Select2 from 'vue3-select2-component';
+import { KnMask } from "@willsofts/will-app";
 
+const APP_URL = "/api/demo002";
 const defaultData = {
   account: '',
   effectdate: "",
@@ -80,7 +83,8 @@ export default {
     //select2 data options must in format {id:?, text:?}
     //const statusOptions = props.dataCategory.marrystatus.map((item) => { return {id: item.key, text: item.text}});
     const dataset = ref({});
-    return { localData, tableSettings, pagingSettings, paging, filters, dataset };
+    const mask = new KnMask();
+    return { localData, tableSettings, pagingSettings, paging, filters, dataset, mask };
   },
   methods: {
     reset(newData) {
@@ -89,6 +93,13 @@ export default {
     getPagingOptions(settings) {
       if(!settings) settings = this.pagingSettings;
       return {page: settings.page, limit: settings.limit, rowsPerPage: settings.rowsPerPage, orderBy: settings.orderBy?settings.orderBy:"", orderDir: settings.orderDir?settings.orderDir:"" };
+    },
+    resetClick() {
+      this.localData = {...defaultData};
+      this.resetFilters();
+      this.$refs.dataTable.clear();
+      this.$refs.dataPaging.clear();
+      this.pagingSettings.rows = 0;
     },
     insertClick() {
       this.$emit('data-insert',this.filters);
@@ -120,7 +131,7 @@ export default {
       let formdata = serializeParameters(jsondata,criterias);
       startWaiting();
       $.ajax({
-        url: getApiUrl()+"/api/demo002/collect",
+        url: getApiUrl()+APP_URL+"/collect",
         data: formdata.jsondata,
         headers : formdata.headers,
         type: "POST",
@@ -167,6 +178,8 @@ export default {
           //return this.labels.female_label; //"Female";
           return '<em class="fa fa-female"></em>';
         } else return data;  
+      } else if(field.name=="title") {
+        return this.mask.maskTail(data,5);
       }
       return this.$refs.dataTable.formatField(data,field);
     },    
